@@ -1,0 +1,134 @@
+<html>
+<!-- css/html starter lab code -->
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <style>
+    body {
+      font-family: Verdana;
+    }
+
+    h1,
+    h2,
+    h3 {
+      color: darkblue;
+    }
+
+    .rating-circle {
+      height: 2em;
+      width: 2em;
+      border: .1em solid black;
+      border-radius: 1.1em;
+      display: inline-block;
+      margin: 0;
+      padding: .1em;
+    }
+
+    .rating-hover {
+      background-color: yellow;
+    }
+
+    .rating-chosen {
+      background-color: green;
+    }
+
+    button {
+      margin: 1em;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Contoso Web Developer Conference</h1>
+  <h2>Finding elements using jQuery</h2>
+  <div>This session is about identifying elements using jQuery methods and selectors.</div>
+  <h3>Rate this session</h3>
+  <div id="rating-container" max-value="5">
+    <div class="rating-circle"></div>
+    <div class="rating-circle"></div>
+    <div class="rating-circle"></div>
+    <div class="rating-circle"></div>
+    <div class="rating-circle"></div>
+    <br><br>
+    <div>
+      <label for="max-value">Enter max value:</label>
+      <input type="text" id="max-value" />
+      <button type="button" id="update-max-value">Update max value</button>
+    </div>
+    <button type="button" id="save-rating">Save rating</button>
+  </div>
+  <div id="output"></div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <script>
+    // your answer would go here - my code
+    //idea : rate Contoso Web Developer Conference
+    var $pressed; //global jquery variable - rating circle pressed
+
+    //hovering event
+    $('.rating-circle').mouseenter(function() {
+      /* Stuff to do when the mouse enters the element */
+      $(this).removeClass('rating-chosen').addClass('rating-hover');
+      $(this).prevAll().removeClass('rating-chosen').addClass('rating-hover');
+      $(this).nextAll().removeClass('rating-chosen')
+    });
+
+    //'un-'hovering event, no rating circle pressed
+    $('.rating-circle').mouseleave(function() {
+      /* Stuff to do when the mouse leaves the element */
+      $(this).toggleClass('rating-hover');
+      $(this).prevAll().toggleClass('rating-hover');
+      $pressed.addClass('rating-chosen').prevAll().addClass('rating-chosen'); //restating pressed circle state after hovering ended
+    });
+
+    //rating circle pressed
+    $('.rating-circle').click(function(event) {
+      /* Act on the event */
+      $(this).toggleClass('rating-chosen');
+      $(this).prevAll().toggleClass('rating-chosen');
+      $pressed = $(this); //identifying pressed circle for reference
+    });
+
+    //allowing rating UI scale configration
+    $("button#update-max-value").click(function(event) {
+      /* Act on the event */
+        let numOfCircs = $("#rating-container").attr('max-value');
+        let newMax = $("#max-value").val();
+        let diff = newMax - numOfCircs;
+        while (diff != 0 && newMax > 0){
+          if (diff > 0) {//adding circles
+            let addition = $('.rating-circle').last().clone(true);
+            $('.rating-circle').last().after(addition);
+            $('.rating-circle').last().css('margin-left', '.3em');
+            diff--;
+          }
+          else {//removing circles
+            $('.rating-circle').last().remove();
+            diff++;
+          }
+        }
+        if (newMax > 0) {
+          $("#rating-container").attr('max-value', newMax);
+        }
+    });
+
+    $("#save-rating").click(function(event) {//ajax communication with API
+      /* Act on the event */
+      let userRating = {value: 0, maxValue: 5};
+      userRating.value =  $('.rating-chosen').length;
+      userRating.maxValue = $('#rating-container').attr('max-value');
+
+      $.post('http://jquery-edx.azurewebsites.net/api/Rating', userRating, function(data, textStatus, xhr) {
+        /*optional stuff to do after success */
+        let text = "";
+        for (value in data) {
+          text += data[value];
+        }
+        $('#output').text(text);
+      });
+
+    });
+  </script>
+</body>
+
+</html>
